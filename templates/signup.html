@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Blog Signup{% endblock %}
+{% block content %}
+<h1 id="page-title">Blog Signup</h1>
+<h3><a href="/login" id="loginLink">Already created an account? Login here.</a></h3>
+<form method="post">
+{% if feedback %}
+<label for="username">Enter your new username:</label>
+<input type="text" name="username" id="username" autocomplete="username" value="{{ username }}">
+{% if usernameFeedback %} 
+<br><span id="feedbackMessage">{{ usernameFeedback }}</span>
+{% endif %}
+<br><br>
+<label for="password">Your new password:</label>
+<input name="password" id="password" type="password" autocomplete="new-password" value="{{ password }}"></input>
+{% if passwordFeedback %} 
+<br><span id="feedbackMessage">{{ passwordFeedback }}</span>
+{% endif %}
+<br><br>
+<label for="verify">Verify your new password:</label>
+<input name="verify" id="verify" type="password" autocomplete="new-password"></input>
+{% if verifyFeedback %} 
+<br><span id="feedbackMessage">{{ verifyFeedback }}</span>
+{% endif %}
+<br><br>
+<button type="submit">Submit</button>
+{% else %}
+<label for="username">Enter your new username:</label>
+<input type="text" name="username" id="username" autocomplete="username" value="{{ username }}">
+<br><br>
+<label for="password">Your new password:</label>
+<input name="password" id="password" type="password" autocomplete="new-password"></input>
+<br><br>
+<label for="verify">Verify your new password:</label>
+<input name="verify" id="verify" type="password" autocomplete="new-password"></input>
+<button type="submit">Submit</button>
+{% endif %}
+</form>
+{% endblock %}

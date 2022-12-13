@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Blog Login{% endblock %}
+{% block content %}
+<h1 id="page-title">Blog Login</h1>
+<h3><a href="/signup" id="createAccountLink">Create an account</a></h3>
+<form method="post">
+{% if feedback %}
+<label for="username">Enter your username:</label>
+<input type="text" name="username" id="username" autocomplete="username" value="{{ username }}">
+{% if usernameFeedback %} 
+<br><span id="feedbackMessage">{{ usernameFeedback | safe }}</span>
+{% endif %}
+<br><br>
+<label for="password">Enter your password:</label>
+<input name="password" id="password" type="password" autocomplete="current-password" value="{{ password }}"></input>
+{% if passwordFeedback %} 
+<br><span id="feedbackMessage">{{ passwordFeedback }}</span>
+{% endif %}
+<br><br>
+<button type="submit">Submit</button>
+{% else %}
+<label for="username">Enter your username:</label>
+<input type="text" name="username" id="username" autocomplete="username" value="{{ username }}">
+<br><br>
+<label for="password">Enter your password:</label>
+<input name="password" id="password" autocomplete="current-password" type="password"></input>
+<button type="submit">Submit</button>
+{% endif %}
+</form>
+{% endblock %}

@@ -2,12 +2,19 @@
 <html lang="en">
     <head>
         <title>{% block title %}{% endblock %}</title>
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='site.css')}}" />
+        <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='site.css') }}">
     </head>
-
     <header>
-        <a href="/blog" id="headerLink">Main Blog Page</a>
-        <a href="/newpost" id="headerLink">Add a Blog Entry</a>
+        <div class="topnav">
+            <a href="/">Home</a>
+            <a href="/blog">Blogs</a>
+            <a href="/newpost">Add a Blog Entry</a>
+            <div class="topnav-right">
+                <a href="/login">Login</a>
+                <a href="/logout">Logout</a>
+            </div>
+        </div>
+        
     </header>
         {% block content %}
         {% endblock %}

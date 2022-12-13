@@ -1,4 +1,61 @@
-#pageTitle{text-align: center;}
-#headerLink{text-decoration: none;color: black;border: 2px solid black;padding:2px}
-#postLink{text-decoration: none;color: black;}
-#feedbackMessage{color: red;}
+#page-title {
+    text-align: center;
+}
+/* Add a black background color to the header navigation bar */
+.topnav {
+    background-color: rgb(100, 100, 100);
+    overflow: hidden;
+}
+
+/* Style the links inside the header navigation bar */
+.topnav a {
+  float: left;
+  color: #f2f2f2;
+  text-align: center;
+  padding: 12px 12px;
+  text-decoration: none;
+  font-size: 17px;
+}
+
+/* Change the color of links on hover */
+.topnav a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+/* Right-align section inside the header navigation bar */
+.topnav-right {
+  float: right;
+}
+/* Style post links */
+#post-link {
+    text-decoration: none;
+    color: black;
+}
+/* Style feedback messages to stand out */
+#feedbackMessage {
+    color: red;
+    font-weight: bold;
+}
+/* Style link inside feedback */
+#feedbackLink {
+    text-decoration: underline;
+    color:red;
+    font-weight: bold;
+}
+/* Style account creation link */
+#createAccountLink {
+    border: 3px;
+    padding: 4px;
+    background-color: rgb(100, 100, 100);
+    text-decoration: none;
+    color: greenyellow;
+}
+/* Style login link on signup page */
+#loginLink {
+    border: 3px;
+    padding: 4px;
+    background-color: rgb(100, 100, 100);
+    text-decoration: none;
+    color: greenyellow;
+}
