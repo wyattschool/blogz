@@ -232,18 +232,29 @@ def login():
             feedback = feedback_message)
         #Check that the credentials are valid.
         user = User.query.filter_by(username=username).first()
-        if checkpw(password.encode("utf-8"),user.password.encode("utf-8")):
-            #Log user in by adding session variable.
-            session['username'] = username
-            return flask.redirect(url_for("newpost"))
-        else:
-            wrong_password = "The password entered is incorrect."
-            feedback(wrong_password)
-            password_feedback = wrong_password
+        try:
+            if checkpw(password.encode("utf-8"),user.password.encode("utf-8")):
+                #Log user in by adding session variable.
+                session['username'] = username
+                return flask.redirect(url_for("newpost"))
+            else:
+                wrong_password = "The password entered is incorrect."
+                feedback(wrong_password)
+                password_feedback = wrong_password
+                return flask.render_template('login.html',
+                username = username,
+                passwordFeedback = password_feedback,
+                feedback = feedback_message)
+        except ValueError:
+            no_hashed_password_feedback = "Uh oh! Your user doesn't have a hashed password it seems. Try creating a new account. Sorry for the inconvenience."
+            feedback_message = no_hashed_password_feedback
             return flask.render_template('login.html',
-            username = username,
-            passwordFeedback = password_feedback,
-            feedback = feedback_message)
+                username = username,
+                usernameFeedback = feedback_message,
+                password = password,
+                passwordFeedback = feedback_message,
+                feedback = feedback_message)
+        
 
 #Display all posts or single post
 @app.route("/blog",methods=["GET"])
