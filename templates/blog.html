@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 {% block title %}Blog{% endblock %}
 {% block content %}
-<h1 id="pageTitle">Build a Blog</h1>
+<h1 id="page-title">Build a Blog</h1>
 {% for i in range(0, titlesLen) %}
-<a href="blog{{i+1}}" id="postLink"><h2 id={{i}}>{{ titles[i] }}</h2></a>
+<a href="blog?id={{i+1}}" id="post-link"><h2 id={{i}}>{{ titles[i] }}</h2></a>
     {{ bodies[i] }}
     <hr>
     {% endfor %}

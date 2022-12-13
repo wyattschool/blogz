@@ -245,45 +245,49 @@ def login():
             passwordFeedback = password_feedback,
             feedback = feedback_message)
 
-#Display all the posts in the table on a single page.
-@app.route("/blog")
+#Display all posts or single post
+@app.route("/blog",methods=["GET"])
 def blog():
-    blogs = get_posts()
-    titles = []
-    bodies = []
-    i = 0
-    for blog in blogs:
-        mod = i % 2
-        #Get every even item in the list and add it to the list of blog bodies.
-        if mod > 0:
-            bodies.append(blog)
-            i += 1
-        #Get every odd item in the list and add it to the list of blog titles.
+    if request.args.get('id'):
+        id = int(request.args.get('id'))
+        #If the id provided is more than the ids in the database or equal to 0 reroute it to /blog.
+        if id > get_post_total() or id == 0:
+            return flask.redirect(url_for("blog"))
+        #If the id provided is good look up the post
         else:
-            titles.append(blog)
-            i += 1
-        
-    return render_template("blog.html",
-    titlesLen = len(titles),
-    titles = titles,
-    bodies = bodies)
-
-#Display the blog for the id provided after "blog" in the URL.
-@app.route("/blog<int:id>",methods=["GET"])
-def display_single_post(id=None):
-    #If the id provided is more than the ids in the database or equal to 0 reroute it to /blog.
-    if id > get_post_total() or id == 0:
-        return flask.redirect(url_for("blog"))
+            with app.app_context():
+                print("Query for the singel post.")
+                #Query the database for the post's title and body based on the id in the URL.
+                blogs = (db.session.query(Blog.title,Blog.body).filter(Blog.id == id))
+                for row in blogs:
+                    blog_title = str(row["title"])
+                    blog_body = str(row["body"])
+                    print(blog_title)
+            #Return the single post to user
+            return render_template("post.html",
+            title = blog_title,
+            body = blog_body)
+    #Display all the posts
     else:
-        with app.app_context():
-            #Query the database for the post's title and body based on the id in the URL.
-            blogs = (db.session.query(Blog.title,Blog.body).filter(Blog.id == id))
-            for row in blogs:
-                blog_title = str(row["title"])
-                blog_body = str(row["body"])
-        return render_template("post.html",
-        title = blog_title,
-        body = blog_body)
+        blogs = get_posts()
+        titles = []
+        bodies = []
+        i = 0
+        for blog in blogs:
+            mod = i % 2
+            #Get every even item in the list and add it to the list of blog bodies.
+            if mod > 0:
+                bodies.append(blog)
+                i += 1
+            #Get every odd item in the list and add it to the list of blog titles.
+            else:
+                titles.append(blog)
+                i += 1
+        #Return all of the posts to user
+        return render_template("blog.html",
+        titlesLen = len(titles),
+        titles = titles,
+        bodies = bodies)
 
 #Render a form to create a new post.
 @app.route('/newpost', methods=['GET', 'POST'])
