@@ -1,19 +1,19 @@
 {% extends "base.html" %}
 {% block title %}New Blog{% endblock %}
 {% block content %}
-<h1 id="pageTitle">Add A Blog Entry</h1>
+<h1 id="page-title">Add A Blog Entry</h1>
     <form method="post">
         {%if feedback %}
         <label for="title">Title for your new blog:</label>
         <input type="text" name="title" id="title" value="{{ title }}">
         {%if needTitle %}
-        <p id="feedbackMessage">{{ needTitle }}</p>
+        <br><span id="feedbackMessage">{{ needTitle }}</span>
         {% endif %}
         <br><br>
         <label for="body">Your new blog:</label>
         <textarea name="body" id="body" value="">{{ body }}</textarea>
         {%if needBody %}
-        <p id="feedbackMessage">{{ needBody }}</p>
+        <br><span id="feedbackMessage">{{ needBody }}</span>
         {% endif %}
         <br><br>
         <button type="submit">Submit</button>
