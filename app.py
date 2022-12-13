@@ -227,6 +227,7 @@ def login():
         if not existing_user:
             username_feedback = """That username doesn't exist. Maybe you need to create an account. <a href='/signup' id='feedbackLink'>Create an account here.</a>"""
             feedback(username_feedback)
+            feedback_message = username_feedback
             return flask.render_template('login.html',
             usernameFeedback = username_feedback,
             feedback = feedback_message)
