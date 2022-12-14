@@ -14,7 +14,7 @@ class Blog(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120))
     body = db.Column(db.String(1000))
-    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    owner = db.Column(db.Integer, db.ForeignKey('user.id'))
 
     def __init__(self, title:str, body:str, owner_id:int):
         self.title = title
@@ -25,7 +25,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(120), unique=True)
     password = db.Column(db.String(120))
-    blogs = db.relationship('Blog', back_populates='owner')
+    blogs = db.relationship('Blog', backref='owner_id')
 
     def __init__(self, username:str, password:str):
         self.username = username
@@ -50,6 +50,16 @@ def get_post_total():
             blog_ids.append(blog_id)
         post_total = len(blog_ids)
         return post_total
+
+def get_user_total():
+    user_ids = []
+    with app.app_context():
+        users = (db.session.query(User.id).all())
+        for row in users:
+            user_id = str(row["id"])
+            user_ids.append(user_id)
+        user_total = len(user_ids)
+        return user_total
 
 #Take input, create object, and add it to the database.
 def create_blog(title:str, body:str, owner_id:int):
@@ -89,10 +99,25 @@ def require_login():
         print("Not logged in. Rerouting")
         return flask.redirect(url_for("login"))
 
-#Reroute all of requests to to /blog.
 @app.route("/")
 def index():
-    return flask.render_template("index.html")
+    user_count = get_user_total()
+    users = []
+    i = 1
+    while i <= user_count:
+        #Get the usernames based on ids from database and add to array
+        user = User.query.filter_by(id=i).first()
+        print(user)
+        #user = db.session.query(User.username).filter(User.id == i)
+        #print(user.username)
+        #for row in user:
+            ##username = str(row["username"])
+        users.append(user.username)
+        i += 1
+
+    return flask.render_template("index.html",
+    userLen = user_count,
+    users = users)
 
 #User signup page
 @app.route("/signup", methods=["GET","POST"])
@@ -198,7 +223,7 @@ def signup():
             session['username'] = username
             return flask.redirect(url_for("blog"))
         else:
-            #If th eusername does exist let the user know.
+            #If the username does exist let the user know.
             username_feedback = "User already exists."
             feedback(username_feedback)
             return flask.render_template('signup.html',
@@ -242,12 +267,14 @@ def login():
                 wrong_password = "The password entered is incorrect."
                 feedback(wrong_password)
                 password_feedback = wrong_password
+                feedback_message = password_feedback
                 return flask.render_template('login.html',
                 username = username,
                 passwordFeedback = password_feedback,
                 feedback = feedback_message)
+
         except ValueError:
-            no_hashed_password_feedback = "Uh oh! Your user doesn't have a hashed password it seems. Try creating a new account. Sorry for the inconvenience."
+            no_hashed_password_feedback = "Uh oh! Likely your user doesn't have a hashed password. Try creating a new account. Sorry for the inconvenience."
             feedback_message = no_hashed_password_feedback
             return flask.render_template('login.html',
                 username = username,
@@ -256,7 +283,6 @@ def login():
                 passwordFeedback = feedback_message,
                 feedback = feedback_message)
         
-
 #Display all posts or single post
 @app.route("/blog",methods=["GET"])
 def blog():
@@ -268,17 +294,48 @@ def blog():
         #If the id provided is good look up the post
         else:
             with app.app_context():
-                print("Query for the singel post.")
                 #Query the database for the post's title and body based on the id in the URL.
-                blogs = (db.session.query(Blog.title,Blog.body).filter(Blog.id == id))
-                for row in blogs:
-                    blog_title = str(row["title"])
-                    blog_body = str(row["body"])
-                    print(blog_title)
+                blog = (db.session.query(Blog.title,Blog.owner,Blog.body).filter(Blog.id == id))
+            for row in blog:
+                blog_title = str(row["title"])
+                blog_body = str(row["body"])
+                owner_id = str(row["owner"])
+                owner = User.query.filter_by(id=owner_id).first()
+                blog_owner_name = owner.username
+                    
             #Return the single post to user
             return render_template("post.html",
             title = blog_title,
+            owner = blog_owner_name,
+            ownerID = owner_id,
             body = blog_body)
+
+    elif request.args.get('user'):
+        user_id = int(request.args.get('user'))
+        #If the user provided in not in the database or equal to 0 reroute it to /blog.
+        if user_id > get_user_total() or user_id == 0:
+            return flask.redirect(url_for("blog"))
+        else:
+            blog_titles = []
+            blog_ids = []
+            with app.app_context():
+                #Query the database for the posts by user based on the user id in the URL.
+                owned_posts = (db.session.query(Blog.title,Blog.id).filter(Blog.owner == user_id))
+            for row in owned_posts:
+                blog_title = str(row["title"])
+                blog_id = int(row["id"])
+                blog_titles.append(blog_title)
+                blog_ids.append(blog_id)
+            blogs_len = len(blog_titles)
+            owner = User.query.filter_by(id=user_id).first()
+            blog_owner_name = owner.username
+            #Return all of the posts for the user entered to the user
+            return render_template("singleuser.html",
+            owner = blog_owner_name,
+            blogLen = blogs_len,
+            blogTitles = blog_titles,
+            blogIDs = blog_ids)
+                
     #Display all the posts
     else:
         blogs = get_posts()
@@ -312,24 +369,25 @@ def newpost():
         need_body = "Please enter a body."
         blog_title = request.form['title']
         blog_body = request.form['body']
-        #If title input is empty provide feedback.
-        if blog_title == "" or blog_title == " ":
-            feedback_message = need_title
-            #If title and body input is empty provide feedback.
-            if blog_body == "" or blog_body == " ":
-                feedback_message = "Please enter a title for you blog and enter a body."
-                return render_template("blogform.html",
+
+        #If title and body input is empty provide feedback.
+        if blog_body == "" and blog_title == "":
+            feedback_message = "Please enter a title for you blog and enter a body."
+            return render_template("blogform.html",
             title = blog_title,
             needTitle = need_title,
             body = blog_body,
             needBody = need_body,
-            feedback = feedback_message)
-            else:
-                return render_template("blogform.html",
-            title = blog_title,
-            needTitle = need_title,
-            body = blog_body,
-            feedback = feedback_message)
+            feedback = feedback_message) 
+            
+        #If title input is empty provide feedback.
+        if blog_title == "" or blog_title == " ":
+            feedback_message = need_title
+            return render_template("blogform.html",
+                title = blog_title,
+                needTitle = need_title,
+                body = blog_body,
+                feedback = feedback_message)               
 
         #If body input is empty provide feedback.
         if blog_body == "" or blog_body == " ":
@@ -344,17 +402,17 @@ def newpost():
         else:
             user = User.query.filter_by(username=session['username']).first()
             create_blog(blog_title, blog_body, user.id)
-            new_post = "blog" + str(get_post_total())
+            new_post = "blog?id=" + str(get_post_total())
             return flask.redirect((new_post))
 
 @app.route('/logout')
 def logout():
 
     if session.get('username')==True:
-        return flask.redirect("/")
+        return flask.redirect("/blog")
     else:
         session.pop('username', None)
-        return flask.redirect("/")
+        return flask.redirect("/blog")
 
 if __name__ == "__main__":
     app.run()

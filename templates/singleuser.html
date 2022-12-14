@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ owner }}{% endblock %}
+{% block content %}
+<h1 id="page-title">{{ owner }}'s posts</h1>
+{% for i in range(0, blogLen) %}
+<a href="blog?id={{blogIDs[i]}}" id="post-link"><h2>{{ blogTitles[i] }}</h2></a>
+<hr>
+{% endfor %}
+{% endblock %}

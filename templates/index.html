@@ -2,4 +2,8 @@
 {% block title %}Blog{% endblock %}
 {% block content %}
 <h1 id="page-title">Home</h1>
+{% for i in range(0, userLen) %}
+<a href="blog?user={{i+1}}" id="user-link"><h2 id={{i}}>{{ users[i] }}</h2></a>
+    <hr>
+    {% endfor %}
 {% endblock %}
