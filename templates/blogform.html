@@ -11,7 +11,7 @@
         {% endif %}
         <br><br>
         <label for="body">Your new blog:</label>
-        <textarea name="body" id="body" value="">{{ body }}</textarea>
+        <textarea name="body" id="body" value="" rows="5" cols="50">{{ body }}</textarea>
         {%if needBody %}
         <br><span id="feedbackMessage">{{ needBody }}</span>
         {% endif %}
@@ -22,7 +22,7 @@
         <input type="text" name="title" id="title">
         <br><br>
         <label for="body">Your new blog:</label>
-        <textarea name="body" id="body"></textarea>
+        <textarea name="body" id="body" rows="5" cols="50"></textarea>
         <br><br>
         <button type="submit">Submit</button>
         {% endif %}
