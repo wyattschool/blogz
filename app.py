@@ -96,7 +96,6 @@ def require_login():
     allowed_routes = ['login', 'signup', 'index', 'blog']
     #Block user from routes not listed and allow the user to access the site css file while not being logged in.
     if request.endpoint not in allowed_routes and 'username' not in session and not (request.path in ['/static/site.css']):
-        print("Not logged in. Rerouting")
         return flask.redirect(url_for("login"))
 
 @app.route("/")
@@ -107,11 +106,6 @@ def index():
     while i <= user_count:
         #Get the usernames based on ids from database and add to array
         user = User.query.filter_by(id=i).first()
-        print(user)
-        #user = db.session.query(User.username).filter(User.id == i)
-        #print(user.username)
-        #for row in user:
-            ##username = str(row["username"])
         users.append(user.username)
         i += 1
 
@@ -151,7 +145,7 @@ def signup():
         if username != "":
             if len(username) <= 2:
                 short_username = "The username entered is too short. It must be at least 3 characters long."
-                feedback_message(short_username)
+                feedback(short_username)
                 username_feedback = short_username
 
         #Username looks good check the password.
@@ -190,21 +184,17 @@ def signup():
                     feedback = feedback_message,
                     username = username,
                     password = password)
-            
             elif 'username_feedback' in locals() and 'verify_feedback' in locals():
                 return flask.render_template('signup.html',
                     usernameFeedback = username_feedback,
                     verifyFeedback = verify_feedback,
                     feedback = feedback_message,
                     password = password)
-
-            elif 'username_feedback' in locals():
+            elif 'password_feedback' in locals():
                 return flask.render_template('signup.html',
-                    usernameFeedback = username_feedback,
+                    passwordFeedback = password_feedback,
                     feedback = feedback_message,
-                    password = password,
-                    verify=verify)
-
+                    username = username)
             elif 'verify_feedback' in locals():
                 return flask.render_template('signup.html',
                     verifyFeedback = verify_feedback,
@@ -236,7 +226,7 @@ def signup():
 #User login page
 @app.route("/login", methods=["GET","POST"])
 def login():
-    if session.get('username')==True:
+    if 'username' in session:
         return flask.redirect("/blog")
 
     if request.method == 'GET':
@@ -258,31 +248,20 @@ def login():
             feedback = feedback_message)
         #Check that the credentials are valid.
         user = User.query.filter_by(username=username).first()
-        try:
-            if checkpw(password.encode("utf-8"),user.password.encode("utf-8")):
-                #Log user in by adding session variable.
-                session['username'] = username
-                return flask.redirect(url_for("newpost"))
-            else:
-                wrong_password = "The password entered is incorrect."
-                feedback(wrong_password)
-                password_feedback = wrong_password
-                feedback_message = password_feedback
-                return flask.render_template('login.html',
-                username = username,
-                passwordFeedback = password_feedback,
-                feedback = feedback_message)
-
-        except ValueError:
-            no_hashed_password_feedback = "Uh oh! Likely your user doesn't have a hashed password. Try creating a new account. Sorry for the inconvenience."
-            feedback_message = no_hashed_password_feedback
+        if checkpw(password.encode("utf-8"),user.password.encode("utf-8")):
+            #Log user in by adding session variable.
+            session['username'] = username
+            return flask.redirect(url_for("newpost"))
+        else:
+            wrong_password = "The password entered is incorrect."
+            feedback(wrong_password)
+            password_feedback = wrong_password
+            feedback_message = password_feedback
             return flask.render_template('login.html',
-                username = username,
-                usernameFeedback = feedback_message,
-                password = password,
-                passwordFeedback = feedback_message,
-                feedback = feedback_message)
-        
+            username = username,
+            passwordFeedback = password_feedback,
+            feedback = feedback_message)
+
 #Display all posts or single post
 @app.route("/blog",methods=["GET"])
 def blog():
@@ -335,7 +314,7 @@ def blog():
             blogLen = blogs_len,
             blogTitles = blog_titles,
             blogIDs = blog_ids)
-                
+    
     #Display all the posts
     else:
         blogs = get_posts()
@@ -352,7 +331,7 @@ def blog():
             else:
                 titles.append(blog)
                 i += 1
-        #Return all of the posts to user
+        #Return all of the posts to user.
         return render_template("blog.html",
         titlesLen = len(titles),
         titles = titles,
@@ -379,7 +358,7 @@ def newpost():
             body = blog_body,
             needBody = need_body,
             feedback = feedback_message) 
-            
+
         #If title input is empty provide feedback.
         if blog_title == "" or blog_title == " ":
             feedback_message = need_title
@@ -407,8 +386,7 @@ def newpost():
 
 @app.route('/logout')
 def logout():
-
-    if session.get('username')==True:
+    if 'username' not in session:
         return flask.redirect("/blog")
     else:
         session.pop('username', None)
