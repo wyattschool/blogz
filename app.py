@@ -40,7 +40,7 @@ def feedback(new_feedback_message):
         feedback_message = new_feedback_message
     return feedback_message
 
-#Get the total count of ids in the database blog table.
+#Get the total count of blog ids in the database blog table.
 def get_post_total():
     blog_ids = []
     with app.app_context():
@@ -51,6 +51,7 @@ def get_post_total():
         post_total = len(blog_ids)
         return post_total
 
+#Get the total count of users in the database.
 def get_user_total():
     user_ids = []
     with app.app_context():
@@ -90,25 +91,27 @@ def get_posts():
             blog_output.append(blog_body)
         return blog_output
 
+#Before doing anything else check if the user is logged in.
 @app.before_request
 def require_login():
     #List routes user can access.
-    allowed_routes = ['login', 'signup', 'index', 'blog']
-    #Block user from routes not listed and allow the user to access the site css file while not being logged in.
+    allowed_routes = ['login', 'signup', 'index', 'blog', 'logout']
+    #Block user from routes not in allowed_routes and allow the user to access the site's css file while not being logged in.
     if request.endpoint not in allowed_routes and 'username' not in session and not (request.path in ['/static/site.css']):
         return flask.redirect(url_for("login"))
 
+#Index/Home page
 @app.route("/")
 def index():
     user_count = get_user_total()
     users = []
     i = 1
     while i <= user_count:
-        #Get the usernames based on ids from database and add to array
+        #Get the usernames based on ids from database and add to array.
         user = User.query.filter_by(id=i).first()
         users.append(user.username)
         i += 1
-
+    #Display all users in the database to user.
     return flask.render_template("index.html",
     userLen = user_count,
     users = users)
@@ -120,6 +123,7 @@ def signup():
         return flask.render_template("signup.html")
     
     if request.method == 'POST':
+        #Clean up any previous feedback or user input if they exist.
         if 'username_feedback' in locals():
             del username_feedback
         if 'password_feedback' in locals():
@@ -133,6 +137,7 @@ def signup():
         if "verify" in locals():
             del verify
 
+        #Get user input from submitted form
         username = request.form['username']
         password = request.form['password']
         verify = request.form['verify']
@@ -246,6 +251,7 @@ def login():
             return flask.render_template('login.html',
             usernameFeedback = username_feedback,
             feedback = feedback_message)
+
         #Check that the credentials are valid.
         user = User.query.filter_by(username=username).first()
         if checkpw(password.encode("utf-8"),user.password.encode("utf-8")):
@@ -386,9 +392,11 @@ def newpost():
 
 @app.route('/logout')
 def logout():
+    #if the username is not set redirect the user as if they had actaully logged out.
     if 'username' not in session:
         return flask.redirect("/blog")
     else:
+        #If the username is set then take it out of the session.
         session.pop('username', None)
         return flask.redirect("/blog")
 
